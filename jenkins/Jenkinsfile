@@ -6,13 +6,26 @@ pipeline {
     options {
         skipStagesAfterUnstable()
     }
+    parameters {
+        string(name: 'APP_NAME', defaultValue: 'java-app', description: 'Name of the application')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'staging', 'prod'], description: 'Deployment environment')
+        booleanParam(name: 'RUN_TESTS', defaultValue: true, description: 'Run tests before deployment')
+    }
     stages {
+        stage('Log') {
+            steps {
+                echo "Building ${params.APP_NAME} for ${params.ENVIRONMENT} environment"
+            }
+        }
         stage('Build') {
             steps {
                 sh 'mvn -B -DskipTests clean package'
             }
         }
         stage('Test') {
+            when {
+                expression { params.RUN_TESTS }
+            }
             steps {
                 sh 'mvn test'
             }
